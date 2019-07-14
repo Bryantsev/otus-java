@@ -8,6 +8,7 @@ import java.util.*;
 public class DIYarrayList<E> implements List<E> {
 
     private Object[] dataList;
+    private int size;
 
     public DIYarrayList() {
         this.dataList = new Object[0];
@@ -19,12 +20,12 @@ public class DIYarrayList<E> implements List<E> {
 
     @Override
     public int size() {
-        return dataList.length;
+        return this.size;
     }
 
     @Override
     public boolean isEmpty() {
-        return dataList.length == 0;
+        return size == 0;
     }
 
     @Override
@@ -49,9 +50,15 @@ public class DIYarrayList<E> implements List<E> {
 
     @Override
     public boolean add(E t) {
-        dataList = Arrays.copyOf(dataList, dataList.length + 1);
-        dataList[dataList.length - 1] = t;
+        checkAdequacyCapacity(size + 1);
+        dataList[size++] = t;
         return true;
+    }
+
+    private void checkAdequacyCapacity(int requiredCapacity) {
+        if (requiredCapacity > dataList.length) {
+            dataList = Arrays.copyOf(dataList, requiredCapacity);
+        }
     }
 
     @Override
@@ -66,7 +73,7 @@ public class DIYarrayList<E> implements List<E> {
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        return addAllExtended(dataList.length, c);
+        return addAllExtended(size, c);
     }
 
     @Override
@@ -77,8 +84,8 @@ public class DIYarrayList<E> implements List<E> {
     }
 
     private void checkRange(int index) {
-        if (index < 0 || index >= dataList.length) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + dataList.length);
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
     }
 
@@ -95,7 +102,8 @@ public class DIYarrayList<E> implements List<E> {
         if (c.size() > 0) {
             int oldSize = dataList.length;
             Object[] src = c.toArray();
-            dataList = Arrays.copyOf(dataList, oldSize + src.length);
+            size = oldSize + src.length;
+            checkAdequacyCapacity(size);
             if (index < oldSize) {
                 System.arraycopy(dataList, index, dataList, index + src.length, oldSize - index);
             }
@@ -164,10 +172,11 @@ public class DIYarrayList<E> implements List<E> {
 
         return new ListIterator<E>() {
             int position = index;
+            int lastElementReturned = -1; // index of last element returned, -1 if not such
 
             @Override
             public boolean hasNext() {
-                return position < dataList.length;
+                return position < size;
             }
 
             @Override
@@ -175,7 +184,8 @@ public class DIYarrayList<E> implements List<E> {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
-                return (E) dataList[position++];
+                lastElementReturned = position++;
+                return (E) dataList[lastElementReturned];
             }
 
             @Override
@@ -188,7 +198,8 @@ public class DIYarrayList<E> implements List<E> {
                 if (!hasPrevious()) {
                     throw new NoSuchElementException();
                 }
-                return (E) dataList[--position];
+                lastElementReturned = --position;
+                return (E) dataList[lastElementReturned];
             }
 
             @Override
@@ -208,10 +219,10 @@ public class DIYarrayList<E> implements List<E> {
 
             @Override
             public void set(E e) {
-                if (!hasPrevious()) {
-                    throw new NoSuchElementException();
+                if (lastElementReturned < 0) {
+                    throw new IllegalStateException("Method set must be executed only after applying previous or next methods!");
                 }
-                DIYarrayList.this.set(position - 1, e);
+                DIYarrayList.this.set(lastElementReturned, e);
             }
 
             @Override
