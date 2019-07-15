@@ -9,13 +9,19 @@ public class DIYarrayList<E> implements List<E> {
 
     private Object[] dataList;
     private int size;
+    private int stepToIncCapacity = 10;
 
     public DIYarrayList() {
-        this.dataList = new Object[0];
+        this.dataList = new Object[stepToIncCapacity];
     }
 
     public DIYarrayList(int initialCapacity) {
         this.dataList = new Object[initialCapacity];
+    }
+
+    public DIYarrayList(int initialCapacity, int stepToIncCapacity) {
+        this.dataList = new Object[initialCapacity];
+        this.stepToIncCapacity = stepToIncCapacity;
     }
 
     @Override
@@ -40,12 +46,17 @@ public class DIYarrayList<E> implements List<E> {
 
     @Override
     public Object[] toArray() {
-        return dataList;
+        return Arrays.copyOf(dataList, size);
     }
 
     @Override
     public <E> E[] toArray(E[] a) {
-        throw new UnsupportedOperationException();
+        if (a.length < size)
+            return (E[]) Arrays.copyOf(dataList, size, a.getClass());
+        System.arraycopy(dataList, 0, a, 0, size);
+        if (a.length > size)
+            a[size] = null;
+        return a;
     }
 
     @Override
@@ -57,7 +68,7 @@ public class DIYarrayList<E> implements List<E> {
 
     private void checkAdequacyCapacity(int requiredCapacity) {
         if (requiredCapacity > dataList.length) {
-            dataList = Arrays.copyOf(dataList, requiredCapacity);
+            dataList = Arrays.copyOf(dataList, requiredCapacity + stepToIncCapacity);
         }
     }
 
@@ -131,6 +142,7 @@ public class DIYarrayList<E> implements List<E> {
 
     @Override
     public E get(int index) {
+        checkRange(index);
         return (E) dataList[index];
     }
 
@@ -239,6 +251,6 @@ public class DIYarrayList<E> implements List<E> {
 
     @Override
     public String toString() {
-        return Arrays.toString(dataList);
+        return Arrays.toString(toArray());
     }
 }

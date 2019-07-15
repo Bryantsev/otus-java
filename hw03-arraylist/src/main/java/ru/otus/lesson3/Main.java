@@ -1,5 +1,7 @@
 package ru.otus.lesson3;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -28,6 +30,9 @@ public class Main {
 
         Collections.sort(list1, Comparator.reverseOrder());
         System.out.println("Reverse sorted list1: " + list1);
+
+        Collections.addAll(list1, list2.toArray(new Integer[]{}));
+        System.out.println("list1 after adding list2: " + list1);
 
     }
 
