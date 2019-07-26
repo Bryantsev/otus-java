@@ -15,8 +15,9 @@ public class TestedClassTest {
     private int eachExecuteCount;
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll() throws Exception {
         System.out.println("beforeAll executed");
+        // throw new Exception("Ошибка в методе beforeAll");
     }
 
     @AfterAll

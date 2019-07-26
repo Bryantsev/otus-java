@@ -1,5 +1,6 @@
 package ru.otus.lesson6.my_junit;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -9,65 +10,65 @@ import java.util.Objects;
  */
 public class TestClass {
 
-    private Class<?> testClass;
-    private List<String> beforeAll = new ArrayList<>();
-    private List<String> afterAll = new ArrayList<>();
-    private List<String> beforeEach = new ArrayList<>();
-    private List<String> afterEach = new ArrayList<>();
-    private List<Test> tests = new ArrayList<>();
+    private Class<?> clazz;
+    private List<Method> beforeAll = new ArrayList<>();
+    private List<Method> afterAll = new ArrayList<>();
+    private List<Method> beforeEach = new ArrayList<>();
+    private List<Method> afterEach = new ArrayList<>();
+    private List<TestMethod> tests = new ArrayList<>();
 
     public TestClass() {
     }
 
-    public List<String> getBeforeAll() {
+    List<Method> getBeforeAll() {
         return beforeAll;
     }
 
-    public void addBeforeAll(String beforeAll) {
+    void addBeforeAll(Method beforeAll) {
         this.beforeAll.add(beforeAll);
     }
 
-    public List<String> getAfterAll() {
+    List<Method> getAfterAll() {
         return afterAll;
     }
 
-    public void addAfterAll(String afterAll) {
+    void addAfterAll(Method afterAll) {
         this.afterAll.add(afterAll);
     }
 
-    public List<String> getBeforeEach() {
+    List<Method> getBeforeEach() {
         return beforeEach;
     }
 
-    public void addBeforeEach(String beforeEach) {
+    void addBeforeEach(Method beforeEach) {
         this.beforeEach.add(beforeEach);
     }
 
-    public List<String> getAfterEach() {
+    List<Method> getAfterEach() {
         return afterEach;
     }
 
-    public void addAfterEach(String afterEach) {
+    void addAfterEach(Method afterEach) {
         this.afterEach.add(afterEach);
     }
 
-    public TestClass(Class<?> testClass) {
-        this.testClass = testClass;
+    TestClass(Class<?> clazz) {
+        this.clazz = clazz;
     }
 
-    public Class<?> getTestClass() {
-        return testClass;
+    Class<?> getClazz() {
+        return clazz;
     }
 
-    public void setTestClass(Class<?> testClass) {
-        this.testClass = testClass;
+    void setClazz(Class<?> clazz) {
+        this.clazz = clazz;
     }
 
-    public List<Test> getTests() {
+    List<TestMethod> getTests() {
         return tests;
     }
 
-    public void addTest(Test testAll) {
+    void addTest(TestMethod testAll) {
         this.tests.add(testAll);
     }
 
@@ -76,100 +77,12 @@ public class TestClass {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TestClass that = (TestClass) o;
-        return Objects.equals(testClass, that.testClass);
+        return Objects.equals(clazz, that.clazz);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(testClass);
-    }
-
-
-    public static class Test {
-        private String name;
-        private int times;
-        private boolean ignored;
-        private List<TestExec> execs = new ArrayList<>();
-
-        public Test() {
-        }
-
-        public Test(String name, int times, boolean ignored) {
-            this.name = name;
-            this.times = times;
-            this.ignored = ignored;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getTimes() {
-            return times;
-        }
-
-        public void setTimes(int times) {
-            this.times = times;
-        }
-
-        public boolean isIgnored() {
-            return ignored;
-        }
-
-        public void setIgnored(boolean ignored) {
-            this.ignored = ignored;
-        }
-
-        public List<TestExec> getExecs() {
-            return execs;
-        }
-
-        public void setExecs(List<TestExec> execs) {
-            this.execs = execs;
-        }
-    }
-
-    public static class TestExec {
-        private int numExec;
-        private boolean isSuccess;
-        private String error;
-
-        public TestExec() {
-        }
-
-        public TestExec(int numExec, boolean isSuccess, String error) {
-            this.numExec = numExec;
-            this.isSuccess = isSuccess;
-            this.error = error;
-        }
-
-        public int getNumExec() {
-            return numExec;
-        }
-
-        public void setNumExec(int numExec) {
-            this.numExec = numExec;
-        }
-
-        public boolean isSuccess() {
-            return isSuccess;
-        }
-
-        public void setSuccess(boolean success) {
-            isSuccess = success;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public void setError(String error) {
-            this.error = error;
-        }
+        return Objects.hash(clazz);
     }
 
 }
