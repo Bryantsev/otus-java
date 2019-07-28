@@ -12,13 +12,14 @@
     <modules>
         <module>hw01-maven</module>
         <module>hw03-arraylist</module>
+        <module>hw03-annotations</module>
     </modules>
 
     <properties>
         <!--region General-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>12</maven.compiler.source>
+        <maven.compiler.target>12</maven.compiler.target>
         <maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
         <guava.version>28.0-jre</guava.version>
         <!--endregion  -->
