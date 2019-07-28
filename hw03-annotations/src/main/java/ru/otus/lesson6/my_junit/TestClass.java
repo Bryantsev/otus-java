@@ -11,45 +11,45 @@ import java.util.Objects;
 public class TestClass {
 
     private Class<?> clazz;
-    private List<Method> beforeAll = new ArrayList<>();
-    private List<Method> afterAll = new ArrayList<>();
-    private List<Method> beforeEach = new ArrayList<>();
-    private List<Method> afterEach = new ArrayList<>();
-    private List<TestMethod> tests = new ArrayList<>();
+    private List<Method> beforeAllMethods = new ArrayList<>();
+    private List<Method> afterAllMethods = new ArrayList<>();
+    private List<Method> beforeEachMethods = new ArrayList<>();
+    private List<Method> afterEachMethods = new ArrayList<>();
+    private List<TestMethod> testMethods = new ArrayList<>();
 
     public TestClass() {
     }
 
-    List<Method> getBeforeAll() {
-        return beforeAll;
+    List<Method> getBeforeAllMethods() {
+        return beforeAllMethods;
     }
 
-    void addBeforeAll(Method beforeAll) {
-        this.beforeAll.add(beforeAll);
+    void addBeforeAllMethod(Method method) {
+        this.beforeAllMethods.add(method);
     }
 
-    List<Method> getAfterAll() {
-        return afterAll;
+    List<Method> getAfterAllMethods() {
+        return afterAllMethods;
     }
 
-    void addAfterAll(Method afterAll) {
-        this.afterAll.add(afterAll);
+    void addAfterAllMethod(Method method) {
+        this.afterAllMethods.add(method);
     }
 
-    List<Method> getBeforeEach() {
-        return beforeEach;
+    List<Method> getBeforeEachMethods() {
+        return beforeEachMethods;
     }
 
-    void addBeforeEach(Method beforeEach) {
-        this.beforeEach.add(beforeEach);
+    void addBeforeEachMethod(Method method) {
+        this.beforeEachMethods.add(method);
     }
 
-    List<Method> getAfterEach() {
-        return afterEach;
+    List<Method> getAfterEachMethods() {
+        return afterEachMethods;
     }
 
-    void addAfterEach(Method afterEach) {
-        this.afterEach.add(afterEach);
+    void addAfterEachMethod(Method method) {
+        this.afterEachMethods.add(method);
     }
 
     TestClass(Class<?> clazz) {
@@ -64,12 +64,12 @@ public class TestClass {
         this.clazz = clazz;
     }
 
-    List<TestMethod> getTests() {
-        return tests;
+    List<TestMethod> getTestMethods() {
+        return testMethods;
     }
 
     void addTest(TestMethod testAll) {
-        this.tests.add(testAll);
+        this.testMethods.add(testAll);
     }
 
     @Override

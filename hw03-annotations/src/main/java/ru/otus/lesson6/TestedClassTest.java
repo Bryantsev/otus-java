@@ -1,11 +1,6 @@
 package ru.otus.lesson6;
 
-import ru.otus.lesson6.my_junit.annotations.AfterAll;
-import ru.otus.lesson6.my_junit.annotations.AfterEach;
-import ru.otus.lesson6.my_junit.annotations.BeforeAll;
-import ru.otus.lesson6.my_junit.annotations.BeforeEach;
-import ru.otus.lesson6.my_junit.annotations.Ignore;
-import ru.otus.lesson6.my_junit.annotations.Test;
+import ru.otus.lesson6.my_junit.annotations.*;
 
 /**
  * Created by Alexander Bryantsev on 23.07.2019.
@@ -15,9 +10,8 @@ public class TestedClassTest {
     private int eachExecuteCount;
 
     @BeforeAll
-    public void beforeAll() throws Exception {
+    public void beforeAll() {
         System.out.println("beforeAll executed");
-        // throw new Exception("Ошибка в методе beforeAll");
     }
 
     @AfterAll
