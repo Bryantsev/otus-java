@@ -13,6 +13,7 @@
         <module>hw01-maven</module>
         <module>hw03-arraylist</module>
         <module>hw03-annotations</module>
+        <module>hw04-magic-logging</module>
     </modules>
 
     <properties>
