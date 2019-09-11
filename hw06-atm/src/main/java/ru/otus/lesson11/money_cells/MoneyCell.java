@@ -17,9 +17,7 @@ public interface MoneyCell {
      *
      * @return Количество купюр, которые можно добавить в ячейку до полного заполнения
      */
-    public default int getCapacityRemained() {
-        return getCapacity() - getRemained();
-    }
+    public int getCapacityRemained();
 
     /**
      * Вернуть остаток купюр в ячейке
@@ -40,9 +38,7 @@ public interface MoneyCell {
      *
      * @return Сумма всех купюр в ячейке
      */
-    public default int getTotalRemained() {
-        return getNominal() * getRemained();
-    }
+    public int getTotalRemained();
 
     /**
      * Выдать заданое количество купюр из ячейки

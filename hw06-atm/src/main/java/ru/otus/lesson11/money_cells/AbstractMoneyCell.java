@@ -31,6 +31,11 @@ public abstract class AbstractMoneyCell implements MoneyCell {
         return remained;
     }
 
+    @Override
+    public int getCapacityRemained() {
+        return getCapacity() - getRemained();
+    }
+
     protected void setNominal(int nominal) {
         this.nominal = nominal;
     }
@@ -38,6 +43,11 @@ public abstract class AbstractMoneyCell implements MoneyCell {
     @Override
     public int getNominal() {
         return nominal;
+    }
+
+    @Override
+    public int getTotalRemained() {
+        return getNominal() * getRemained();
     }
 
     @Override
