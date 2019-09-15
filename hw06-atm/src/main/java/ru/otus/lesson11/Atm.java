@@ -31,6 +31,11 @@ public interface Atm {
     public int getBanknotesRemained(int nominal);
 
     /**
+     * Сумма, которую может выдать банкомат
+     */
+    public long getTotal();
+
+    /**
      * Внести купюры заданного номинала
      *
      * @param count   Количество купюр

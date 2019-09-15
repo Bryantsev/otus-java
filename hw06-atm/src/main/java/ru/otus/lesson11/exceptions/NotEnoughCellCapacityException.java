@@ -10,4 +10,8 @@ public class NotEnoughCellCapacityException extends Exception {
         super("Недостаточная емкость для приема заданного количества купюр с номиналом " + nominal + "!");
     }
 
+    public NotEnoughCellCapacityException(String message) {
+        super(message);
+    }
+
 }

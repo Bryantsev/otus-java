@@ -103,6 +103,16 @@ public class CustomAtm implements Atm {
         return banknotes;
     }
 
+    @Override
+    public long getTotal() {
+        long total = 0;
+        Map<Integer, Integer> banknotes = getBanknotesByNominal();
+        for (Map.Entry<Integer, Integer> cell : banknotes.entrySet()) {
+            total += cell.getKey() * cell.getValue();
+        }
+        return total;
+    }
+
     /**
      * Внести купюры заданного номинала
      *
