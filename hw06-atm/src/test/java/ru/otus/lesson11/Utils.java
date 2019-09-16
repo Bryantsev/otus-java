@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class Utils {
 
-    public static Atm getCustomAtm(long id, String name, int capacity, int loadedBanknotes) {
+    public static CustomAtm getCustomAtm(long id, String name, int capacity, int loadedBanknotes) {
         List<MoneyCell> model500MoneyCellList = new ArrayList<>();
         model500MoneyCellList.add(new CustomMoneyCell(capacity, 50));
         model500MoneyCellList.add(new CustomMoneyCell(capacity, 100));
@@ -19,7 +19,7 @@ public class Utils {
         model500MoneyCellList.add(new CustomMoneyCell(capacity, 1000));
         model500MoneyCellList.add(new CustomMoneyCell(capacity, 5000));
 
-        Atm atm = new CustomAtm(id, name, model500MoneyCellList);
+        CustomAtm atm = new CustomAtm(id, name, model500MoneyCellList, "currentVersion");
 
         // Загружаем в банкомат купюры разных номиналов, оставляя место для внесения купюр клиентами
         assertDoesNotThrow(() -> atm.addBanknotes(loadedBanknotes, 50));

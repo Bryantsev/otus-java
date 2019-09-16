@@ -1,75 +1,102 @@
 package ru.otus.lesson11;
 
-import ru.otus.lesson11.exceptions.NotEnoughBanknotesException;
-import ru.otus.lesson11.exceptions.NotEnoughCellCapacityException;
-import ru.otus.lesson11.exceptions.NotEnoughSumException;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * Подразделение для работы с банкоматами
+ */
+public class AtmDepartment {
 
-public class AtmDepartment implements Atm {
+    /**
+     * Банкоматы и их история версий ПО, пополняемая при обновлении и сокращаемая при восстановлении всегда с конца
+     */
+    private Map<CustomAtm, Deque<CustomAtm.SoftwareVersion>> atms = new HashMap<>();
 
-    private long id;
-    private String name;
-    private List<Atm> atms = new ArrayList<>();
-
-    public AtmDepartment(long id, String name) {
-        this.id = id;
-        this.name = name;
+    public void addAtm(CustomAtm atm) {
+        atms.putIfAbsent(atm, new ArrayDeque<>());
     }
 
-    public long getId() {
-        return id;
+    public boolean removeAtm(CustomAtm atm) {
+        if (atms.containsKey(atm)) {
+            return atms.remove(atm, atms.get(atm));
+        }
+        return false;
     }
 
-    public String getName() {
-        return name;
+    /**
+     * Сохранить текущие версии ПО банкоматов
+     * @param atms Список банкоматов или групп
+     */
+    private void saveAtmsCurrentSoftwareVersion(List<Atm> atms) throws Exception {
+        for (Atm atm : atms) {
+            if (!atm.isGroup()) {
+                if (this.atms.containsKey(atm)) {
+                    this.atms.get(atm).addLast(atm.saveSoftwareVersion());
+                }
+            } else {
+                // Группы сохраняем рекурсивно
+                saveAtmsCurrentSoftwareVersion(((AtmGroup) atm).getAtms());
+            }
+        }
     }
 
-    public List<Atm> getAtms() {
-        return atms;
+    /**
+     * Обновить ПО банкоматов по списку
+     *
+     * @param atms Список банкоматов для обновления
+     * @return Успешность обновления
+     */
+    public boolean updateAtms(List<Atm> atms, String newVersion) throws Exception {
+        saveAtmsCurrentSoftwareVersion(atms);
+
+        atms.forEach(atm -> atm.update(newVersion));
+
+        return true;
     }
 
-    public void addAtm(Atm atm) {
-        atms.add(atm);
+    public boolean updateAtms(AtmGroup atmGroup, String newVersion) throws Exception {
+        return updateAtms(atmGroup.getAtms(), newVersion);
     }
 
-    public boolean removeAtm(Atm atm) {
-        return atms.remove(atm);
+    public boolean updateAtm(Atm atm, String newVersion) throws Exception {
+        List<Atm> list = new ArrayList<>();
+        list.add(atm);
+
+        return updateAtms(list, newVersion);
     }
 
-    @Override
-    public int getBanknotesCapacity(int nominal) {
-        return atms.stream().mapToInt(atm -> atm.getBanknotesCapacity(nominal)).sum();
+    /**
+     * Восстановить предыдущую версию ПО банкоматов из списка
+     * @param atms Список банкоматов
+     * @return Успешность восстановления
+     */
+    public boolean restoreAtms(List<Atm> atms) throws Exception {
+        for (Atm atm : atms) {
+            if (!atm.isGroup()) {
+                if (this.atms.containsKey(atm)) {
+                    final Deque<Atm.SoftwareVersion> versions = this.atms.get(atm);
+                    if (!versions.isEmpty()) {
+                        atm.restoreSoftwareVersion(versions.pollLast());
+                    }
+                }
+            } else {
+                // Группы восстанавливаем рекурсивно
+                restoreAtms(((AtmGroup) atm).getAtms());
+            }
+        }
+
+        return true;
     }
 
-    @Override
-    public int getBanknotesCapacityRemained(int nominal) {
-        return atms.stream().mapToInt(atm -> atm.getBanknotesCapacityRemained(nominal)).sum();
+    public boolean restoreAtms(AtmGroup atmGroup) throws Exception {
+        return restoreAtms(atmGroup.getAtms());
     }
 
-    @Override
-    public int getBanknotesRemained(int nominal) {
-        return atms.stream().mapToInt(atm -> atm.getBanknotesRemained(nominal)).sum();
+    public boolean restoreAtm(Atm atm) throws Exception {
+        List<Atm> list = new ArrayList<>();
+        list.add(atm);
+
+        return restoreAtms(list);
     }
 
-    @Override
-    public long getTotal() {
-        return atms.stream().mapToLong(Atm::getTotal).sum();
-    }
-
-    @Override
-    public int addBanknotes(int count, int nominal) throws NotEnoughCellCapacityException {
-        throw new NotEnoughCellCapacityException("Операция не поддерживается для подразделения банкоматов!");
-    }
-
-    @Override
-    public int addBanknotes(int[] countAndNominal) throws NotEnoughCellCapacityException {
-        throw new NotEnoughCellCapacityException("Операция не поддерживается для подразделения банкоматов!");
-    }
-
-    @Override
-    public int[] withdraw(int total) throws NotEnoughSumException, NotEnoughBanknotesException {
-        throw new NotEnoughBanknotesException("Операция не поддерживается для подразделения банкоматов!");
-    }
 }

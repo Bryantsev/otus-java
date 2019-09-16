@@ -7,6 +7,58 @@ import ru.otus.lesson11.exceptions.NotEnoughSumException;
 public interface Atm {
 
     /**
+     * Вернуть ид-р банкомата
+     */
+    public long getId();
+
+    /**
+     * Признак группы банкоматов
+     */
+    public boolean isGroup();
+
+    /**
+     * Включить банкомат
+     */
+    public void powerOn();
+
+    /**
+     * Выключить банкомат
+     */
+    public void powerOff();
+
+    /**
+     * Запустить банкомат в работу: прием и выдачу купюр
+     */
+    public void startWork();
+
+    /**
+     * Заблокировать банкомат для служебных операций
+     */
+    public void block();
+
+    /**
+     * Обновить версию ПО банкомата
+     *
+     * @param newVersion Новая версия ПО
+     */
+    public void update(String newVersion);
+
+    /**
+     * Сохранить текущую версию ПО банкомата
+     *
+     * @return Текущая версия ПО банкомата
+     */
+    public SoftwareVersion saveSoftwareVersion() throws Exception;
+
+    /**
+     * Восстановить заданную версию ПО банкомата
+     *
+     * @param softwareVersion Версия ПО банкомата
+     * @return Успешность восстановления
+     */
+    public boolean restoreSoftwareVersion(SoftwareVersion softwareVersion) throws Exception;
+
+    /**
      * Емкость банкомата в купюрах заданного номинала
      *
      * @param nominal Номинал купюры
@@ -59,5 +111,22 @@ public interface Atm {
      * @return Выданные купюры. Массив с четным количеством элементов: четные элементы - количество купюр, нечетные - номинал купюр
      */
     public int[] withdraw(int total) throws NotEnoughSumException, NotEnoughBanknotesException;
+
+
+    /**
+     * Сохраненная версия ПО банкомата
+     */
+    public class SoftwareVersion {
+
+        private String version;
+
+        protected SoftwareVersion(String version) {
+            this.version = version;
+        }
+
+        protected String getVersion() {
+            return version;
+        }
+    }
 
 }
