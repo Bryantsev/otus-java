@@ -9,23 +9,147 @@ import java.util.*;
 
 public class CustomAtm implements Atm {
 
+    /**
+     * Ид-р банкомата
+     */
     private long id;
+    /**
+     * Имя банкомата
+     */
     private String name;
+    /**
+     * Ячейки с купюрами
+     */
     private List<MoneyCell> moneyCells;
+    /**
+     * Текущая версия ПО банкомата
+     */
+    private String softwareVersion;
+    /**
+     * Новая версия ПО банкомата для обновления
+     */
+    private String newSoftwareVersionForUpdate;
 
-    public CustomAtm(long id, String name, List<MoneyCell> moneyCells) {
 
+    private AtmState state;
+
+    public CustomAtm(long id, String name, List<MoneyCell> moneyCells, String softwareVersion) {
         this.id = id;
         this.name = name;
         this.moneyCells = moneyCells == null ? new ArrayList<>() : moneyCells;
+        this.softwareVersion = softwareVersion;
+        this.state = new AtmTurnedOffState(this);
     }
 
+    @Override
     public long getId() {
         return id;
     }
 
+    @Override
+    public boolean isGroup() {
+        return false;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public String getSoftwareVersion() {
+        return softwareVersion;
+    }
+
+    public String getNewSoftwareVersionForUpdate() {
+        return newSoftwareVersionForUpdate;
+    }
+
+    /**
+     * Изменить статус банкомата. Синхронизируем
+     *
+     * @param state Новый статус банкомата
+     */
+    public synchronized void changeState(AtmState state) {
+        this.state = state;
+    }
+
+    /**
+     * Получить тип статуса банкомата. Синхронизируем
+     *
+     * @return
+     */
+    public synchronized AtmStateEnum getState() {
+        return state.getState();
+    }
+
+    @Override
+    public void powerOn() {
+        state.powerOn();
+    }
+
+    @Override
+    public void powerOff() {
+        state.powerOff();
+    }
+
+    @Override
+    public void startWork() {
+        state.startWork();
+    }
+
+    @Override
+    public void block() {
+        state.block();
+    }
+
+    @Override
+    public void update(String newVersion) {
+        this.newSoftwareVersionForUpdate = newVersion;
+        state.update();
+    }
+
+    /**
+     * Изменение состояния банкомата в случае успешного обновления. Операция срабатывает только, если банкомат в статусе Обновляется
+     */
+    public void updateSuccessful() {
+        if (AtmStateEnum.UPDATING.equals(state.getState())) {
+            softwareVersion = newSoftwareVersionForUpdate;
+        }
+    }
+
+    /**
+     * Сохранить текущую версию ПО банкомата
+     *
+     * @return Текущая версия ПО банкомата
+     */
+    public SoftwareVersion saveSoftwareVersion() {
+        return new SoftwareVersion(softwareVersion);
+    }
+
+    /**
+     * Восстановить заданную версию ПО банкомата
+     *
+     * @param softwareVersion Версия ПО банкомата
+     * @return Успешность восстановления
+     */
+    public boolean restoreSoftwareVersion(SoftwareVersion softwareVersion) {
+        this.softwareVersion = softwareVersion.getVersion();
+        return true;
+    }
+
+    /**
+     * Сравниваем банкоматы по ид-рам
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Atm otherAtm = (Atm) o;
+        return isGroup() == otherAtm.isGroup() && id == otherAtm.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, isGroup());
     }
 
     /**
@@ -101,6 +225,16 @@ public class CustomAtm implements Atm {
         }
 
         return banknotes;
+    }
+
+    @Override
+    public long getTotal() {
+        long total = 0;
+        Map<Integer, Integer> banknotes = getBanknotesByNominal();
+        for (Map.Entry<Integer, Integer> cell : banknotes.entrySet()) {
+            total += cell.getKey() * cell.getValue();
+        }
+        return total;
     }
 
     /**
