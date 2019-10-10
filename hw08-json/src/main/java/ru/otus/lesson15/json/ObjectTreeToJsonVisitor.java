@@ -5,20 +5,22 @@ import ru.otus.lesson15.fields.ObjectArrayField;
 import ru.otus.lesson15.fields.ObjectObjectField;
 import ru.otus.lesson15.fields.ObjectPrimitiveField;
 
-import javax.json.*;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonValue;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import static ru.otus.lesson15.ObjectToConvertorUtils.isSimpleValue;
+
 public class ObjectTreeToJsonVisitor implements ObjectTreeVisitor {
 
-    private Object jsonBuilder = null;
-    private Object currJsonBuilder = null;
-    private Deque<StackItem> jsonBuilderStack = new ArrayDeque<>();
-
-    @Override
-    public void visit(ObjectPrimitiveField of) {
-        addValue(of.getName(), of.getObj());
-    }
+    private Object jsonRootObject = null;
+    private Object currJsonObject = null;
+    private Deque<StackItem> jsonObjectStack = new ArrayDeque<>();
 
     /**
      * Добавить примитивное значение к текущему объекту с приведением типа
@@ -27,77 +29,92 @@ public class ObjectTreeToJsonVisitor implements ObjectTreeVisitor {
      * @param value Значение свойства
      */
     private void addValue(String name, Object value) {
-        if (currJsonBuilder == null) {
+        if (currJsonObject == null) {
             return;
         }
 
-        if (currJsonBuilder instanceof JsonObjectBuilder) {
-            if (value == null) {
-                ((JsonObjectBuilder) currJsonBuilder).addNull(name);
+        JsonValue jsonValue = getJsonValue(value);
+
+        if (currJsonObject instanceof JsonObjectBuilder) {
+            if (jsonValue == null) {
+                ((JsonObjectBuilder) currJsonObject).addNull(name);
             } else {
-                if (value instanceof Boolean) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Boolean) value);
-                } else if (value instanceof String) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (String) value);
-                } else if (value instanceof Character) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Character) value);
-                } else if (value instanceof Byte) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Byte) value);
-                } else if (value instanceof Short) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Short) value);
-                } else if (value instanceof Integer) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Integer) value);
-                } else if (value instanceof Long) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Long) value);
-                } else if (value instanceof Float) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Float) value);
-                } else if (value instanceof Double) {
-                    ((JsonObjectBuilder) currJsonBuilder).add(name, (Double) value);
-                }
+                ((JsonObjectBuilder) currJsonObject).add(name, jsonValue);
             }
-        } else if (currJsonBuilder instanceof JsonArrayBuilder) {
-            if (value == null) {
-                ((JsonArrayBuilder) currJsonBuilder).addNull();
+        } else if (currJsonObject instanceof JsonArrayBuilder) {
+            if (jsonValue == null) {
+                ((JsonArrayBuilder) currJsonObject).addNull();
             } else {
-                if (value instanceof Boolean) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Boolean) value);
-                } else if (value instanceof String) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((String) value);
-                } else if (value instanceof Character) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Character) value);
-                } else if (value instanceof Byte) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Byte) value);
-                } else if (value instanceof Short) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Short) value);
-                } else if (value instanceof Integer) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Integer) value);
-                } else if (value instanceof Long) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Long) value);
-                } else if (value instanceof Float) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Float) value);
-                } else if (value instanceof Double) {
-                    ((JsonArrayBuilder) currJsonBuilder).add((Double) value);
-                }
+                ((JsonArrayBuilder) currJsonObject).add(jsonValue);
             }
         }
     }
 
+    private JsonValue getJsonValue(Object value) {
+        if (value == null) {
+            return JsonValue.NULL;
+        } else if (value instanceof Boolean) {
+            return (Boolean) value ? JsonValue.TRUE : JsonValue.FALSE;
+        } else if (value instanceof String) {
+            return Json.createValue((String) value);
+        } else if (value instanceof Enum) {
+            return Json.createValue(value.toString());
+        } else if (value instanceof Character) {
+            return Json.createValue(value.toString());
+        } else if (value instanceof Byte) {
+            return Json.createValue((Byte) value);
+        } else if (value instanceof Short) {
+            return Json.createValue((Short) value);
+        } else if (value instanceof Integer) {
+            return Json.createValue((Integer) value);
+        } else if (value instanceof Long) {
+            return Json.createValue((Long) value);
+        } else if (value instanceof Float) {
+            return Json.createValue((Float) value);
+        } else if (value instanceof Double) {
+            return Json.createValue((Double) value);
+        } else if (value instanceof BigInteger) {
+            return Json.createValue((BigInteger) value);
+        } else if (value instanceof BigDecimal) {
+            return Json.createValue((BigDecimal) value);
+        }
+        return null;
+    }
+
+    @Override
+    public void visit(ObjectPrimitiveField of) {
+        // Если корневой объект не задан, и переданный объект представляет простой тип данных, то сохраним его сразу в корневой объект и выйдем
+        // Ожидается, что на этом обход дерева свойств объекта завершится
+        final Object obj = of.getObj();
+        if (jsonRootObject == null && isSimpleValue(obj)) {
+            jsonRootObject = getJsonValue(obj);
+            return;
+        }
+        addValue(of.getName(), obj);
+    }
+
     @Override
     public void visit(ObjectObjectField of) {
+        checkRootObject();
+
         final Object obj = of.getObj();
+        // Если корневой объект не задан, и переданный объект представляет простой тип данных, то сохраним его сразу в корневой объект и выйдем
+        // Ожидается, что на этом обход дерева свойств объекта завершится
+        // if (jsonRootObject == null && isSimpleValue(obj)) {
+        //     jsonRootObject = getJsonValue(obj);
+        //     return;
+        // }
+
+        // Если объект null, то просто выходим
         if (obj == null) {
             return;
         }
-        final Class<?> aClass = obj.getClass();
-        // Если есть "текущий" объект, то добавим к нему значение поля
-        if (currJsonBuilder != null) {
-            // Перечисление
-            if (aClass.isEnum()) {
-                addValue(of.getName(), obj.toString());
 
-                // Строка
-            } else if (obj instanceof String) {
-                addValue(of.getName(), obj.toString());
+        // Если есть "текущий" объект, то добавим к нему значение поля
+        if (currJsonObject != null) {
+            // Простой тип данных
+            if (isSimpleValue(obj)) {
+                addValue(of.getName(), obj);
 
                 // Объект
             } else {
@@ -105,68 +122,81 @@ public class ObjectTreeToJsonVisitor implements ObjectTreeVisitor {
                 // Добавлять будем на финише после добавления значений всех свойств
 
                 // Добавляем текущий объект в стек и делаем текущим новый объект для дальнейшего заполнения его полей
-                jsonBuilderStack.add(new StackItem(of.getName(), currJsonBuilder));
-                currJsonBuilder = Json.createObjectBuilder();
+                jsonObjectStack.add(new StackItem(of.getName(), currJsonObject));
+                currJsonObject = Json.createObjectBuilder();
             }
             // иначе создаем "текущий" и корневой объект
         } else {
-            currJsonBuilder = Json.createObjectBuilder();
-            if (jsonBuilder == null) {
-                jsonBuilder = currJsonBuilder; // Первый билдер становится корнем дерева
+            currJsonObject = Json.createObjectBuilder();
+            if (jsonRootObject == null) {
+                jsonRootObject = currJsonObject; // Первый билдер становится корнем дерева
             }
         }
     }
 
     @Override
     public void visit(ObjectArrayField of) {
-        if (currJsonBuilder != null && of.getField() != null && of.getObj() != null) {
-            // Добавляем текущий объект в стек и делаем текущим новый объект для дальнейшего заполнения его полей
-            jsonBuilderStack.add(new StackItem(of.getName(), currJsonBuilder));
+        checkRootObject();
+
+        if (currJsonObject != null && of.getField() != null && of.getObj() != null) {
+            // Добавляем текущий объект в стек
+            jsonObjectStack.add(new StackItem(of.getName(), currJsonObject));
         }
 
+        // Делаем текущим новый объект для дальнейшего заполнения его полей
         // Не добавляем массив сразу в дерево объектов, т.к. он сразу сбилдится в пустой массив, а позднее добавленные значения в нем не отразятся
         // Добавлять будем на финише после добавления всех значений
-        currJsonBuilder = Json.createArrayBuilder();
-        if (jsonBuilder == null) {
-            jsonBuilder = currJsonBuilder; // Первый билдер становится корнем дерева
+        currJsonObject = Json.createArrayBuilder();
+        if (jsonRootObject == null) {
+            jsonRootObject = currJsonObject; // Первый билдер становится корнем дерева
+        }
+    }
+
+    private void checkRootObject() {
+        if (jsonRootObject instanceof JsonValue) {
+            throw new RuntimeException("Корневой объект содержит простой тип данных. Посещать поля таких типов или другие объекты уже нельзя!");
         }
     }
 
     @Override
     public void finishVisitComplexObject() {
-        final StackItem parentJsonItem = jsonBuilderStack.pollLast();
+        final StackItem parentJsonItem = jsonObjectStack.pollLast();
         if (parentJsonItem == null) {
             return; // Такого быть не должно: посетитель перестарался
         }
 
         // Приводим тип родительского и текущего объектов к требуемым
-        final boolean isArrayBuilder = currJsonBuilder instanceof JsonArrayBuilder;
+        final boolean isArrayBuilder = currJsonObject instanceof JsonArrayBuilder;
         final Object fieldValue = parentJsonItem.getFieldValue();
         if (fieldValue instanceof JsonObjectBuilder) {
             if (isArrayBuilder) {
-                ((JsonObjectBuilder) fieldValue).add(parentJsonItem.getFieldName(), (JsonArrayBuilder) currJsonBuilder);
+                ((JsonObjectBuilder) fieldValue).add(parentJsonItem.getFieldName(), (JsonArrayBuilder) currJsonObject);
             } else {
-                ((JsonObjectBuilder) fieldValue).add(parentJsonItem.getFieldName(), (JsonObjectBuilder) currJsonBuilder);
+                ((JsonObjectBuilder) fieldValue).add(parentJsonItem.getFieldName(), (JsonObjectBuilder) currJsonObject);
             }
         } else if (fieldValue instanceof JsonArrayBuilder) {
             if (isArrayBuilder) {
-                ((JsonArrayBuilder) fieldValue).add((JsonArrayBuilder) currJsonBuilder);
+                ((JsonArrayBuilder) fieldValue).add((JsonArrayBuilder) currJsonObject);
             } else {
-                ((JsonArrayBuilder) fieldValue).add((JsonObjectBuilder) currJsonBuilder);
+                ((JsonArrayBuilder) fieldValue).add((JsonObjectBuilder) currJsonObject);
             }
         }
 
-        currJsonBuilder = fieldValue; // Делаем текущим объект-родитель
+        currJsonObject = fieldValue; // Делаем текущим объект-родитель
     }
 
     /**
      * Получить json в виде строки
      */
     public String getJson() {
-        if (jsonBuilder instanceof JsonObjectBuilder) {
-            return ((JsonObjectBuilder) jsonBuilder).build().toString();
-        } else if (jsonBuilder instanceof JsonArrayBuilder) {
-            return ((JsonArrayBuilder) jsonBuilder).build().toString();
+        if (jsonRootObject == null) {
+            return JsonValue.NULL.toString();
+        } else if (jsonRootObject instanceof JsonObjectBuilder) {
+            return ((JsonObjectBuilder) jsonRootObject).build().toString();
+        } else if (jsonRootObject instanceof JsonArrayBuilder) {
+            return ((JsonArrayBuilder) jsonRootObject).build().toString();
+        } else if (jsonRootObject instanceof JsonValue) {
+            return jsonRootObject.toString();
         }
         return null;
     }

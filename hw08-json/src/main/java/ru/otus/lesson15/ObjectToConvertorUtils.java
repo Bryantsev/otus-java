@@ -30,6 +30,14 @@ public class ObjectToConvertorUtils {
     }
 
     /**
+     * Вернуть признак простого значения объекта: примитива, перечисления, числа, строки, символа
+     */
+    public static boolean isSimpleValue(Object obj) {
+        Class<?> aClass = obj.getClass();
+        return aClass.isPrimitive() || aClass.isEnum() || obj instanceof String || obj instanceof Number || obj instanceof Character;
+    }
+
+    /**
      * Обойти дерево объекта с помощью визитера
      *
      * @param mainField Имя поля, к которому относится объект, null - для корневого объекта и массива/коллекции
@@ -62,12 +70,16 @@ public class ObjectToConvertorUtils {
                 traverseObjectTree(null, obj, v);
             }
 
+            // Простой тип данных объекта
+        } else if (isSimpleValue(object)) {
+            new ObjectPrimitiveField(mainField, object).accept(v);
+
             // Иначе объект
         } else {
             new ObjectObjectField(mainField, object).accept(v);
 
-            // Обходим поля объекта, не являющегося примитивом, перечислением или строкой
-            if (!aClass.isPrimitive() && !aClass.isEnum() && !(object instanceof String)) {
+            // Обходим поля объекта, не являющегося примитивом, перечислением, строкой, числом, символом
+            if (!isSimpleValue(object)) {
                 isObjOrArray = true;
                 // Берем только свойства класса объекта без предков
                 // TODO сделать с взятием свойств классов-предков
@@ -77,12 +89,14 @@ public class ObjectToConvertorUtils {
                     if (Modifier.isStatic(field.getModifiers())) {
                         continue;
                     }
-                    // Примитив посещаем сразу
-                    if (field.getType().isPrimitive()) {
-                        new ObjectPrimitiveField(field, field.get(object)).accept(v);
-                        // объект или массив запускаем в рекурсию
+                    // Объекты с простым типом данных посещаем сразу
+                    final Object obj = field.get(object);
+                    if (isSimpleValue(obj)) {
+                        new ObjectPrimitiveField(field, obj).accept(v);
+
+                        // сложный объект или массив запускаем в рекурсию
                     } else {
-                        traverseObjectTree(field, field.get(object), v);
+                        traverseObjectTree(field, obj, v);
                     }
                 }
             }

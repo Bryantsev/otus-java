@@ -12,7 +12,8 @@ import java.util.Objects;
 public class Person {
 
     private long id;
-    private String Fio;
+    private String fio;
+    private Integer age;
     private Phone mobilePhone;
     private Phone homePhone;
     private List<Phone> phones;
@@ -27,11 +28,19 @@ public class Person {
     }
 
     public String getFio() {
-        return Fio;
+        return fio;
     }
 
     public void setFio(String fio) {
-        Fio = fio;
+        this.fio = fio;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
     }
 
     public List<Phone> getPhones() {
@@ -73,7 +82,8 @@ public class Person {
     public String toString() {
         return "Person{" +
             "id=" + id +
-            ", Fio='" + Fio + '\'' +
+            ", fio='" + fio + '\'' +
+            ", age=" + age +
             ", mobilePhone=" + mobilePhone +
             ", homePhone=" + homePhone +
             ", phones=" + phones +
@@ -87,7 +97,8 @@ public class Person {
         if (o == null || getClass() != o.getClass()) return false;
         Person person = (Person) o;
         return id == person.id &&
-            Objects.equals(Fio, person.Fio) &&
+            Objects.equals(fio, person.fio) &&
+            Objects.equals(age, person.age) &&
             Objects.equals(mobilePhone, person.mobilePhone) &&
             Objects.equals(homePhone, person.homePhone) &&
             Objects.equals(phones, person.phones) &&
@@ -96,7 +107,7 @@ public class Person {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(id, Fio, mobilePhone, homePhone, phones);
+        int result = Objects.hash(id, fio, age, mobilePhone, homePhone, phones);
         result = 31 * result + Arrays.hashCode(notes);
         return result;
     }

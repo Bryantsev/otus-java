@@ -6,7 +6,11 @@ import ru.otus.lesson15.test_classes.Person;
 import ru.otus.lesson15.test_classes.Phone;
 import ru.otus.lesson15.test_classes.PhoneType;
 
-import static org.junit.jupiter.api.Assertions.*;
+import javax.json.JsonValue;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ObjectToConvertorUtilsTest {
 
@@ -30,6 +34,7 @@ public class ObjectToConvertorUtilsTest {
         Person person = new Person();
         person.setId(1L);
         person.setFio("Иванов Иван Иванович");
+        person.setAge(23);
         person.setNotes(new String[]{"note1", "note2"}); // Добавляем массив заметок
         person.addPhone(phone); // Добавляем телефон в список
         // Задаем этот же телефон в качестве мобильного и домашнего
@@ -39,7 +44,7 @@ public class ObjectToConvertorUtilsTest {
         jsonStr = ObjectToConvertorUtils.objectToJson(person);
         System.out.println("\nperson-jsonStr:\n" + jsonStr);
         // Проверим полученный json
-        assertEquals("{\"id\":1,\"Fio\":\"Иванов Иван Иванович\",\"mobilePhone\":{\"phoneType\":\"MOBILE\",\"number\":\"9999999999\"},\"homePhone\":{\"phoneType\":\"MOBILE\",\"number\":\"9999999999\"},\"phones\":[{\"phoneType\":\"MOBILE\",\"number\":\"9999999999\"}],\"notes\":[\"note1\",\"note2\"]}", jsonStr);
+        assertEquals("{\"id\":1,\"fio\":\"Иванов Иван Иванович\",\"age\":23,\"mobilePhone\":{\"phoneType\":\"MOBILE\",\"number\":\"9999999999\"},\"homePhone\":{\"phoneType\":\"MOBILE\",\"number\":\"9999999999\"},\"phones\":[{\"phoneType\":\"MOBILE\",\"number\":\"9999999999\"}],\"notes\":[\"note1\",\"note2\"]}", jsonStr);
 
         var personRestored = gson.fromJson(jsonStr, Person.class);
         System.out.println("\nperson-object:\n" + person);
@@ -47,5 +52,22 @@ public class ObjectToConvertorUtilsTest {
         assertEquals(person, personRestored, "Восстановленный объект не соответствует исходному!");
     }
 
+    @Test
+    public void customTest() throws IllegalAccessException {
+        var gson = new Gson();
+        assertEquals(gson.toJson(null), JsonValue.NULL.toString());
+        assertEquals(gson.toJson(null), ObjectToConvertorUtils.objectToJson(null));
+        assertEquals(gson.toJson((byte) 1), ObjectToConvertorUtils.objectToJson((byte) 1));
+        assertEquals(gson.toJson((short) 1f), ObjectToConvertorUtils.objectToJson((short) 1f));
+        assertEquals(gson.toJson(1), ObjectToConvertorUtils.objectToJson(1));
+        assertEquals(gson.toJson(1L), ObjectToConvertorUtils.objectToJson(1L));
+        assertEquals(gson.toJson(1f), ObjectToConvertorUtils.objectToJson(1f));
+        assertEquals(gson.toJson(1d), ObjectToConvertorUtils.objectToJson(1d));
+        assertEquals(gson.toJson("aaa"), ObjectToConvertorUtils.objectToJson("aaa"));
+        assertEquals(gson.toJson('a'), ObjectToConvertorUtils.objectToJson('a'));
+        assertEquals(gson.toJson(new int[]{1, 2, 3}), ObjectToConvertorUtils.objectToJson(new int[]{1, 2, 3}));
+        assertEquals(gson.toJson(List.of(1, 2, 3)), ObjectToConvertorUtils.objectToJson(List.of(1, 2, 3)));
+        assertEquals(gson.toJson(Collections.singletonList(1)), ObjectToConvertorUtils.objectToJson(Collections.singletonList(1)));
+    }
 
 }
