@@ -18,6 +18,7 @@
         <module>hw06-atm</module>
         <module>hw08-json</module>
         <module>hw09-orm</module>
+        <module>hw10-hibernate</module>
     </modules>
 
     <properties>
@@ -34,6 +35,7 @@
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <!--endregion  -->
         <javax.json-api.version>1.1.4</javax.json-api.version>
+        <logback-classic.version>1.2.3</logback-classic.version>
     </properties>
 
     <dependencyManagement>
@@ -89,6 +91,12 @@
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>1.4.197</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback-classic.version}</version>
             </dependency>
             <!--endregion  -->
         </dependencies>

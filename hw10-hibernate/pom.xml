@@ -9,7 +9,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>hw09-orm</artifactId>
+    <artifactId>hw10-hibernate</artifactId>
+
+    <properties>
+        <hibernate-core.version>5.4.4.Final</hibernate-core.version>
+    </properties>
 
     <dependencies>
 
@@ -22,11 +26,16 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>org.apache.commons</groupId>-->
+        <!--    <artifactId>commons-lang3</artifactId>-->
+        <!--</dependency>-->
 
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate-core.version}</version>
+        </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
