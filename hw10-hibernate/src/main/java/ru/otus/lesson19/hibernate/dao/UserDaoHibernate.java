@@ -1,5 +1,6 @@
 package ru.otus.lesson19.hibernate.dao;
 
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +9,6 @@ import ru.otus.lesson19.api.dao.UserDaoException;
 import ru.otus.lesson19.api.model.Phone;
 import ru.otus.lesson19.api.model.User;
 import ru.otus.lesson19.api.sessionmanager.SessionManager;
-import ru.otus.lesson19.hibernate.sessionmanager.DatabaseSessionHibernate;
 import ru.otus.lesson19.hibernate.sessionmanager.SessionManagerHibernate;
 
 import java.util.Optional;
@@ -22,11 +22,20 @@ public class UserDaoHibernate implements UserDao {
         this.sessionManager = sessionManager;
     }
 
-
     @Override
-    public Optional<User> findById(long id) {
+    public Optional<User> findById(long id, boolean loadAddress, boolean loadPhones) {
         try {
-            return sessionManager.getCurrentSession().getHibernateSession().byId(User.class).loadOptional(id);
+            final Session hibernateSession = sessionManager.getCurrentSession().getHibernateSession();
+            final Optional<User> userOpt = hibernateSession.byId(User.class).loadOptional(id);
+            userOpt.ifPresent(user -> {
+                if (loadAddress) {
+                    Hibernate.initialize(user.getAddress());
+                }
+                if (loadPhones) {
+                    Hibernate.initialize(user.getPhones());
+                }
+            });
+            return userOpt;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

@@ -37,7 +37,7 @@ public class UserTest {
         newUser.getPhones().add(new Phone(newUser, "499 333-44-55"));
         newUser.getPhones().add(new Phone(newUser, "499 333-44-99"));
         long id = dbServiceUser.saveUser(newUser);
-        Optional<User> userOpt = dbServiceUser.getUser(id);
+        Optional<User> userOpt = dbServiceUser.getUser(id, true, true);
         Assert.assertTrue(userOpt.isPresent());
         User user = userOpt.get();
         Assert.assertEquals(Long.valueOf(1L), user.getId()); // 1му пользователю 1й ид-р
@@ -49,7 +49,7 @@ public class UserTest {
         if (address == null) {
             user.setAddress(new Address(user, "ул. Центральная", "23", null));
             id = dbServiceUser.saveUser(user);
-            userOpt = dbServiceUser.getUser(id);
+            userOpt = dbServiceUser.getUser(id, true, true);
             Assert.assertTrue(userOpt.isPresent());
             user = userOpt.get();
             address = user.getAddress();
@@ -84,7 +84,7 @@ public class UserTest {
         phones.add(new Phone(user, "499 333-44-77"));
         // Сохраним пользователя с измененными данными
         id = dbServiceUser.saveUser(user);
-        userOpt = dbServiceUser.getUser(id);
+        userOpt = dbServiceUser.getUser(id, true, true);
         Assert.assertTrue(userOpt.isPresent());
         user = userOpt.get();
         Assert.assertEquals(Long.valueOf(1L), user.getId());

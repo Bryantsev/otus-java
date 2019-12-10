@@ -37,11 +37,11 @@ public class DbServiceUserImpl implements DBServiceUser {
     }
 
     @Override
-    public Optional<User> getUser(long id) {
+    public Optional<User> getUser(long id, boolean loadAddress, boolean loadPhones) {
         try (SessionManager sessionManager = userDao.getSessionManager()) {
             sessionManager.beginSession();
             try {
-                Optional<User> userOptional = userDao.findById(id);
+                Optional<User> userOptional = userDao.findById(id, loadAddress, loadPhones);
 
                 logger.info("user: {}", userOptional.orElse(null));
                 return userOptional;

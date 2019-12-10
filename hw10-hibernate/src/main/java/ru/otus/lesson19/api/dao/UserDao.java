@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserDao {
 
-    Optional<User> findById(long id);
+    Optional<User> findById(long id, boolean loadAddress, boolean loadPhones);
 
     long saveUser(User user);
 
