@@ -58,12 +58,13 @@ public class DbServiceUserImpl implements DBServiceUser {
     @Override
     public Optional<User> getUser(long id, boolean loadAddress, boolean loadPhones) {
 
-        if (loadAddress && loadPhones) {
-            Optional<User> userOptional = Optional.ofNullable(cache.get(id));
+        final boolean useCache = loadAddress && loadPhones;
+        if (useCache) {
+            final User user = cache.get(id);
             // Если нашли значение в кэше, то сразу возвращаем его, иначе ищем в базе
-            if (userOptional.isPresent()) {
-                logger.debug("User has gotten from cache: {}", userOptional.get());
-                return userOptional;
+            if (user != null) {
+                logger.debug("User has gotten from cache: {}", user);
+                return Optional.of(user);
             }
         }
         try (SessionManager sessionManager = userDao.getSessionManager()) {
@@ -71,7 +72,7 @@ public class DbServiceUserImpl implements DBServiceUser {
             try {
                 Optional<User> userOptional = userDao.findById(id, loadAddress, loadPhones);
                 // Сохраним найденного пользователя в кэш, если загружены все его данные
-                if (loadAddress && loadPhones && userOptional.isPresent()) {
+                if (useCache && userOptional.isPresent()) {
                     cache.put(id, userOptional.get());
                 }
 

@@ -16,8 +16,8 @@ public class MyCache<K, V> implements HwCache<K, V> {
 
     private static Logger logger = LoggerFactory.getLogger(MyCache.class);
 
-    private Map<K, V> cache = new WeakHashMap<>();
-    private List<HwListener<K, V>> listeners = new LinkedList<>();
+    private final Map<K, V> cache = new WeakHashMap<>();
+    private final List<HwListener<K, V>> listeners = new LinkedList<>();
 
     private String name;
     private boolean enabled;
