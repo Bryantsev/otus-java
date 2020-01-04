@@ -44,7 +44,7 @@ public class DbServiceUserImpl implements DBServiceUser {
             try {
                 long userId = userDao.saveUser(user);
                 sessionManager.commitSession();
-                cache.remove(userId); // Доп-но удалим пользователя из кэша
+                cache.put(userId, user); // Добавим пользователя в кэш
                 logger.debug("saved user: {}", userId);
                 return userId;
             } catch (Exception e) {
