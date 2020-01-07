@@ -7,6 +7,10 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "user_table")
+@NamedQueries({
+    @NamedQuery(name = "User.selectAll", query = "select t from User t"),
+    @NamedQuery(name = "User.selectByName", query = "select t from User t where t.name = :name")
+})
 public class User {
 
     @Id

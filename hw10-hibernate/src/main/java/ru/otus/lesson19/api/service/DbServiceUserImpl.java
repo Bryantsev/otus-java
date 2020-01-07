@@ -8,6 +8,7 @@ import ru.otus.lesson19.api.sessionmanager.SessionManager;
 import ru.otus.lesson19.cache.HwCache;
 import ru.otus.lesson19.cache.MyCache;
 
+import java.util.List;
 import java.util.Optional;
 
 public class DbServiceUserImpl implements DBServiceUser {
@@ -41,17 +42,27 @@ public class DbServiceUserImpl implements DBServiceUser {
     public long saveUser(User user) {
         try (SessionManager sessionManager = userDao.getSessionManager()) {
             sessionManager.beginSession();
-            try {
-                long userId = userDao.saveUser(user);
+            // Если есть пользователь с таким же именем при добавлении, то выкинем исключение
+            if (user.getId() == null && userDao.selectByName(user.getName()) != null) {
+                // Закроем сессию
                 sessionManager.commitSession();
-                cache.put(userId, user); // Добавим пользователя в кэш
-                logger.debug("saved user: {}", userId);
-                return userId;
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                sessionManager.rollbackSession();
-                throw new DbServiceException(e);
+                throw new DbServiceException("Пользователь с именем " + user.getName() + " уже существует! Задайте уникальное имя, пожалуйста!");
             }
+            long userId = userDao.saveUser(user);
+            sessionManager.commitSession();
+            cache.put(userId, user); // Добавим пользователя в кэш
+            logger.debug("saved user: {}", userId);
+            return userId;
+        }
+    }
+
+    @Override
+    public boolean deleteUser(Long userId) {
+        try (SessionManager sessionManager = userDao.getSessionManager()) {
+            sessionManager.beginSession();
+            boolean result = userDao.deleteUser(userId);
+            sessionManager.commitSession();
+            return result;
         }
     }
 
@@ -69,21 +80,24 @@ public class DbServiceUserImpl implements DBServiceUser {
         }
         try (SessionManager sessionManager = userDao.getSessionManager()) {
             sessionManager.beginSession();
-            try {
-                Optional<User> userOptional = userDao.findById(id, loadAddress, loadPhones);
-                // Сохраним найденного пользователя в кэш, если загружены все его данные
-                if (useCache && userOptional.isPresent()) {
-                    cache.put(id, userOptional.get());
-                }
-
-                logger.debug("User has gotten from db: {}", userOptional.orElse(null));
-
-                return userOptional;
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                sessionManager.rollbackSession();
+            Optional<User> userOptional = userDao.findById(id, loadAddress, loadPhones);
+            // Сохраним найденного пользователя в кэш, если загружены все его данные
+            if (useCache && userOptional.isPresent()) {
+                cache.put(id, userOptional.get());
             }
-            return Optional.empty();
+
+            logger.debug("User has gotten from db: {}", userOptional.get());
+
+            return userOptional;
         }
     }
+
+    @Override
+    public List<User> selectAll() {
+        try (SessionManager sessionManager = userDao.getSessionManager()) {
+            sessionManager.beginSession();
+            return userDao.selectAll();
+        }
+    }
+
 }
