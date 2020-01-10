@@ -96,7 +96,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>ru.otus.lesson19.WebServer</mainClass>
+                            <mainClass>ru.otus.lesson19.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

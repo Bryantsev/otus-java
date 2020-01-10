@@ -20,6 +20,14 @@ import java.util.Map;
 
 public class UserServlet extends HttpServlet {
 
+    private static final String USERS_ADD_PATH = "/users/add";
+    private static final String USERS_DELETE_PATH = "/users/delete";
+    private static final String LOGIN_ATTRIBUTE = "login";
+    private static final String USER_NAME_PARAMETER = "name";
+    private static final String USER_AGE_PARAMETER = "age";
+    private static final String ERROR_MSG_PARAMETER = "error_msg";
+    private static final String USERS_PARAMETER = "users";
+    private static final String USER_ID_PARAMETER = "id";
     private static Logger logger = LoggerFactory.getLogger(UserServlet.class);
 
     private static final String USERS_PAGE_TEMPLATE = "users.ftl";
@@ -33,64 +41,77 @@ public class UserServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        executeAction(req, resp);
+        if (USERS_DELETE_PATH.equals(req.getRequestURI())) {
+            deleteUser(req, resp);
+        } else {
+            generateUsersList(req, resp, null);
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        executeAction(req, resp);
+        if (USERS_ADD_PATH.equals(req.getRequestURI())) {
+            addUser(req, resp);
+        } else {
+            generateUsersList(req, resp, null);
+        }
     }
 
-    private void executeAction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Map<String, Object> pageVariables = new HashMap<>();
-
-        String uri = req.getRequestURI();
-        // Добавление пользователя
-        if ("/users/add".equals(uri)) {
-            String name = req.getParameter("name");
-            if (Strings.isNullOrEmpty(name)) {
-                pageVariables.put("error_msg", "Не задано имя пользователя!");
-                pageVariables.put("age", req.getParameter("age"));
-            } else {
-                final String age = req.getParameter("age");
-                try {
-                    userService.saveUser(new User(null, name, Strings.isNullOrEmpty(age) ? null : Integer.parseInt(age)));
-                } catch (DbServiceException ex) {
-                    logger.error("executeAction: {}", ex.getMessage()); // Логгируем без стека вызовов
-                    saveErrorDataForClient(req.getParameter("name"), req.getParameter("age"), pageVariables, "Ошибка добавления пользователя: " + ex.getMessage());
-                } catch (Exception ex) {
-                    logger.error("executeAction: {}", ex.getMessage(), ex);
-                    saveErrorDataForClient(req.getParameter("name"), req.getParameter("age"), pageVariables, "Ошибка добавления пользователя: " + ex.getMessage());
-                }
-            }
-            // Удаление пользователя
-        } else if ("/users/delete".equals(uri)) {
-            String id = req.getParameter("id");
-            if (!Strings.isNullOrEmpty(id)) {
-                try {
-                    userService.deleteUser(Long.parseLong(id));
-                } catch (Exception ex) {
-                    logger.error(ex.getMessage(), ex);
-                    pageVariables.put("error_msg", "Ошибка удаления пользователя: " + ex.getMessage());
-                }
-            }
+    private void generateUsersList(HttpServletRequest req, HttpServletResponse resp, Map<String, Object> pageVariables) throws IOException {
+        if (pageVariables == null) {
+            pageVariables = new HashMap<>();
         }
         // Генерация списка пользователей
         resp.setContentType("text/html;charset=utf-8");
         HttpSession session = req.getSession(false);
-        pageVariables.put("login", session.getAttribute("login")); // Сессию на null не проверяем, без нее фильтр не пропустит на эту страницу
+        pageVariables.put(LOGIN_ATTRIBUTE, session.getAttribute(LOGIN_ATTRIBUTE)); // Сессию на null не проверяем, без нее фильтр не пропустит на эту страницу
 
         List<User> users = userService.selectAll();
         logger.info("Users count: {}", users.size());
-        pageVariables.put("users", users);
+        pageVariables.put(USERS_PARAMETER, users);
         resp.getWriter().println(templateProcessor.getPage(USERS_PAGE_TEMPLATE, pageVariables));
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 
+    private void addUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> pageVariables = new HashMap<>();
+        String name = req.getParameter(USER_NAME_PARAMETER);
+        if (Strings.isNullOrEmpty(name)) {
+            pageVariables.put(ERROR_MSG_PARAMETER, "Не задано имя пользователя!");
+            pageVariables.put(USER_AGE_PARAMETER, req.getParameter(USER_AGE_PARAMETER));
+        } else {
+            final String age = req.getParameter(USER_AGE_PARAMETER);
+            try {
+                userService.saveUser(new User(null, name, Strings.isNullOrEmpty(age) ? null : Integer.parseInt(age)));
+            } catch (DbServiceException ex) {
+                logger.error("addUser: {}", ex.getMessage()); // Логгируем без стека вызовов
+                saveErrorDataForClient(name, req.getParameter(USER_AGE_PARAMETER), pageVariables, "Ошибка добавления пользователя: " + ex.getMessage());
+            } catch (Exception ex) {
+                logger.error("addUser: {}", ex.getMessage(), ex);
+                saveErrorDataForClient(name, req.getParameter(USER_AGE_PARAMETER), pageVariables, "Ошибка добавления пользователя: " + ex.getMessage());
+            }
+        }
+        generateUsersList(req, resp, pageVariables);
+    }
+
+    private void deleteUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> pageVariables = new HashMap<>();
+        String id = req.getParameter(USER_ID_PARAMETER);
+        if (!Strings.isNullOrEmpty(id)) {
+            try {
+                userService.deleteUser(Long.parseLong(id));
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+                pageVariables.put(ERROR_MSG_PARAMETER, "Ошибка удаления пользователя: " + ex.getMessage());
+            }
+        }
+        generateUsersList(req, resp, pageVariables);
+    }
+
     private void saveErrorDataForClient(final String name, final String age, Map<String, Object> pageVariables, String errorMessage) {
-        pageVariables.put("error_msg", errorMessage);
-        pageVariables.put("name", name);
-        pageVariables.put("age", age);
+        pageVariables.put(ERROR_MSG_PARAMETER, errorMessage);
+        pageVariables.put(USER_NAME_PARAMETER, name);
+        pageVariables.put(USER_AGE_PARAMETER, age);
     }
 
 }

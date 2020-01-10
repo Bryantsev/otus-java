@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.otus.lesson19.config.ServerProperties;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,59 +13,33 @@ import java.io.IOException;
 
 public class LoginServlet extends HttpServlet {
 
+    public static final String USERS_PAGE_LINK = "/users";
     private static Logger logger = LoggerFactory.getLogger(LoginServlet.class);
 
-    private void authenticateAdmin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
-        String uri = req.getRequestURI();
-        // Выход пользователя
-        if ("/logout".equals(uri)) {
-            if (session != null) {
-                session.invalidate();
-            }
-
-            // Логин пользователя
-        } else if ("/login".equals(uri)) {
-            // Если пользователь имеет открытую сессию, то перенаправим на список пользователей
-            if (session != null) {
-                logger.info("User {} was authenticated", session.getAttribute("login"));
-                resp.sendRedirect("/users");
-                return;
-            }
-
+        // Если пользователь имеет открытую сессию, то перенаправим на список пользователей
+        if (session != null) {
+            resp.sendRedirect(USERS_PAGE_LINK);
+        } else {
             // Проверим учетные данные админа
             final String login = req.getParameter("login");
-            if (authenticate(login, req.getParameter("password"))) {
+            String password = req.getParameter("password");
+            if (!Strings.isNullOrEmpty(login) && !Strings.isNullOrEmpty(password) &&
+                login.equals(ServerProperties.getAdminUser()) && password.equals(ServerProperties.getAdminPassword())) {
+                logger.info("User with login {} was authenticated", login);
                 // Создаем сессию, сохраняем логин и переходим на список пользователей
                 session = req.getSession();
                 session.setAttribute("login", login);
                 session.setMaxInactiveInterval(ServerProperties.getAdminSessionExpireInterval());
-                resp.sendRedirect("/users");
-                return;
+                resp.sendRedirect(USERS_PAGE_LINK);
+            } else {
+                logger.info("Wrong login {} or password", login);
+                // иначе отправляемся на страницу логина
+                resp.sendRedirect("/login.html");
             }
         }
-
-        // иначе отправляемся на страницу логина
-        logger.info("User must be authenticated");
-        resp.sendRedirect("/login.html");
-    }
-
-    private boolean authenticate(String login, String password) {
-        logger.info("login: {}", login);
-
-        return
-            !Strings.isNullOrEmpty(login) && !Strings.isNullOrEmpty(password) &&
-                login.equals(ServerProperties.getAdminUser()) && password.equals(ServerProperties.getAdminPassword());
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        authenticateAdmin(req, resp);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        authenticateAdmin(req, resp);
     }
 
 }

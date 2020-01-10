@@ -1,4 +1,4 @@
-package ru.otus.lesson19;
+package ru.otus.lesson19.server;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -19,39 +19,42 @@ import ru.otus.lesson19.hibernate.dao.UserDaoHibernate;
 import ru.otus.lesson19.hibernate.sessionmanager.SessionManagerHibernate;
 import ru.otus.lesson19.server.filters.AuthorizationFilter;
 import ru.otus.lesson19.server.servlets.LoginServlet;
+import ru.otus.lesson19.server.servlets.LogoutServlet;
 import ru.otus.lesson19.server.servlets.UserServlet;
 
 public class WebServer {
 
-    private final static String STATIC = "/static";
+    private static final String STATIC = "/static";
+    private static final String LOGIN_PATH = "/login";
+    private static final String LOGOUT_PATH = "/logout";
+    private static final String USERS_PATH = "/users/*";
 
-    public static void main(String[] args) throws Exception {
+    private final Server server;
+
+    public WebServer() {
         ServerProperties.loadProperties(); // Загрузим настройки сервера
-        new WebServer().start();
-    }
-
-    static DBServiceUser userService() {
-        SessionFactory sessionFactory = HibernateUtils.buildSessionFactory("hibernate.cfg.xml", User.class, Address.class, Phone.class);
-        return new DbServiceUserImpl(new UserDaoHibernate(new SessionManagerHibernate(sessionFactory)));
-    }
-
-    private void start() throws Exception {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 
-        final ServletHolder loginHolder = new ServletHolder(new LoginServlet());
-        context.addServlet(loginHolder, "/login");
-        context.addServlet(loginHolder, "/logout");
-        context.addServlet(new ServletHolder(new UserServlet(userService())), "/users/*");
-        context.addFilter(new FilterHolder(new AuthorizationFilter()), "/users/*", null);
+        context.addServlet(new ServletHolder(new LoginServlet()), LOGIN_PATH);
+        context.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
+        context.addServlet(new ServletHolder(new UserServlet(getUserService())), USERS_PATH);
+        context.addFilter(new FilterHolder(new AuthorizationFilter()), USERS_PATH, null);
 
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setBaseResource(Resource.newClassPathResource(STATIC));
         resourceHandler.setPathInfoOnly(true);
         resourceHandler.setDirAllowed(false);
 
-        Server server = new Server(ServerProperties.getServerPort());
+        server = new Server(ServerProperties.getServerPort());
         server.setHandler(new HandlerList(resourceHandler, context));
+    }
 
+    private DBServiceUser getUserService() {
+        SessionFactory sessionFactory = HibernateUtils.buildSessionFactory("hibernate.cfg.xml", User.class, Address.class, Phone.class);
+        return new DbServiceUserImpl(new UserDaoHibernate(new SessionManagerHibernate(sessionFactory)));
+    }
+
+    public void start() throws Exception {
         server.start();
         server.join();
     }
