@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.otus.lesson19.config.ServerProperties;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,11 +14,20 @@ import java.io.IOException;
 
 public class LoginServlet extends HttpServlet {
 
-    public static final String USERS_PAGE_LINK = "/users";
+    private static final String USERS_PAGE_LINK = "/users";
     private static Logger logger = LoggerFactory.getLogger(LoginServlet.class);
 
     @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        login(req, resp);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        login(req, resp);
+    }
+
+    private void login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
         // Если пользователь имеет открытую сессию, то перенаправим на список пользователей
         if (session != null) {
